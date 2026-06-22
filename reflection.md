@@ -50,7 +50,7 @@ For example, the test file runs goes through what should be every case of update
 
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
 
-
+I learned that a Streamlit app runs the whole script whenever it needs to process an update, such as clicking a button. The main thing that allows us to maintain the logic is the st.session_state.(), which is where the variables such as score and number of guesses go. I initially thought the st.stop() at the game over section stopped the entire app and that's why the new game wasn't working, but instead it only stops execution of all code after that point. Since the script is re-run whenever it is interacted with, it can start up again, and it does so from the beginning. Additionally, I learned that st.rerun() immediately restarts the script from the top, which in this game gets used when starting a new game; this way the game can automatically restart after resetting the state without waiting for the user to perform another interaction.
 
 ---
 
@@ -60,3 +60,7 @@ For example, the test file runs goes through what should be every case of update
   - This could be a testing habit, a prompting strategy, or a way you used Git.
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+
+The biggest habit I want to develop is using Git more to develop commits as checkpoints, even when not pushing everything immediately. I have mostly worked on small, assignment-level projects so far, usually single files that I could complete in a couple hours and commit and push the entire thing in one batch. However, that won't be feasible at all once I begin working on more complex projects.
+I am not fully confident in AI's ability to create test cases from what I have seen, so I do not plan on using it by itself. My plan will be to reason about the code and come up with my own test cases first, then have the AI add to it.
+The code the AI developed almost always worked well and overall was likely better than I could have done, but only because I do not have experience with Streamlit. For me, this project underscores the importance of having an innate understanding of your project before using AI, in order to verify that not just the actions but the intent of the code match what you want.
