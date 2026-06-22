@@ -17,10 +17,10 @@ difficulty = st.sidebar.selectbox(
     index=1,
 )
 
-#FIX: Swapped attempt limits for normal and hard
+#FIX: Changed attempt limits for normal and hard
 attempt_limit_map = {
     "Easy": 6,
-    "Normal": 5,
+    "Normal": 6,
     "Hard": 8,
 }
 attempt_limit = attempt_limit_map[difficulty]
@@ -33,8 +33,9 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
+#FIX: Fixed off-by-one error for initialization attempt number
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -75,7 +76,11 @@ with col3:
 
 if new_game:
     st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    #FIX: Guess range no longer stays at [1, 100] regardless of difficulty
+    st.session_state.secret = random.randint(low, high)
+    #FIX: Reset status so New Game is playable after a win/loss; clear stale history
+    st.session_state.status = "playing"
+    st.session_state.history = []
     st.success("New game started.")
     st.rerun()
 
@@ -97,12 +102,9 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
-
-        outcome, message = check_guess(guess_int, secret)
+        #FIX: Removed even-attempt str(secret) conversion that made guesses
+        #unwinnable and produced wrong hints (int vs str comparison) every other turn
+        outcome, message = check_guess(guess_int, st.session_state.secret)
 
         if show_hint:
             st.warning(message)
