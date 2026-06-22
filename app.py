@@ -30,6 +30,21 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
+#FIX: Changing difficulty no longer leaves the old secret/score/attempts in
+#play; selecting a new difficulty now resets state and starts a fresh game
+#with a secret drawn from the new difficulty's range
+if "difficulty" not in st.session_state:
+    st.session_state.difficulty = difficulty
+
+if difficulty != st.session_state.difficulty:
+    st.session_state.difficulty = difficulty
+    st.session_state.attempts = 0
+    st.session_state.secret = random.randint(low, high)
+    st.session_state.status = "playing"
+    st.session_state.history = []
+    st.session_state.score = 0
+    st.rerun()
+
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
@@ -54,12 +69,10 @@ st.info(
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
 
-with st.expander("Developer Debug Info"):
-    st.write("Secret:", st.session_state.secret)
-    st.write("Attempts:", st.session_state.attempts)
-    st.write("Score:", st.session_state.score)
-    st.write("Difficulty:", difficulty)
-    st.write("History:", st.session_state.history)
+#FIX: Reserve the debug panel's spot here, but populate it after the guess is
+#processed so it reflects the latest state (creating the expander now keeps its
+#position/open state stable; contents are written into this container below)
+debug_box = st.expander("Developer Debug Info")
 
 raw_guess = st.text_input(
     "Enter your guess:",
@@ -81,6 +94,8 @@ if new_game:
     #FIX: Reset status so New Game is playable after a win/loss; clear stale history
     st.session_state.status = "playing"
     st.session_state.history = []
+    # also choose to reset score
+    st.session_state.score = 0
     st.success("New game started.")
     st.rerun()
 
@@ -130,6 +145,15 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+#FIX: Populate the reserved debug panel after the guess is handled, so History
+#and the other fields show the current attempt instead of lagging one behind
+with debug_box:
+    st.write("Secret:", st.session_state.secret)
+    st.write("Attempts:", st.session_state.attempts)
+    st.write("Score:", st.session_state.score)
+    st.write("Difficulty:", difficulty)
+    st.write("History:", st.session_state.history)
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
