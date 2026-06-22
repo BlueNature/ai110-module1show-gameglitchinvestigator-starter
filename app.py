@@ -30,6 +30,9 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
+# Stretch Goal 2: Add high score metric in the sidebar
+st.sidebar.metric("🏆 High Score", st.session_state.get("high_score", 0))
+
 #FIX: Changing difficulty no longer leaves the old secret/score/attempts in
 #play; selecting a new difficulty now resets state and starts a fresh game
 #with a secret drawn from the new difficulty's range
@@ -55,6 +58,10 @@ if "attempts" not in st.session_state:
 if "score" not in st.session_state:
     st.session_state.score = 0
 
+# Stretch Goal 2: High score persists across games/difficulty changes within the session
+if "high_score" not in st.session_state:
+    st.session_state.high_score = 0
+
 if "status" not in st.session_state:
     st.session_state.status = "playing"
 
@@ -64,10 +71,10 @@ if "history" not in st.session_state:
 st.subheader("Make a guess")
 
 #FIX: Changed hardcoded range to use actual difficulty range (low/high variables)
-st.info(
-    f"Guess a number between {low} and {high}. "
-    f"Attempts left: {attempt_limit - st.session_state.attempts}"
-)
+#FIX: Reserve the info box's spot here, but populate it after the guess is
+#processed so "Attempts left" reflects the current attempt instead of lagging
+#one behind (the submit handler below increments attempts after this point)
+info_box = st.empty()
 
 #FIX: Reserve the debug panel's spot here, but populate it after the guess is
 #processed so it reflects the latest state (creating the expander now keeps its
@@ -104,17 +111,31 @@ if st.session_state.status != "playing":
         st.success("You already won. Start a new game to play again.")
     else:
         st.error("Game over. Start a new game to try again.")
+    #FIX: Populate the reserved info box before stopping so it isn't left blank
+    #on a rerun that lands here (attempts is already final/correct at this point)
+    info_box.info(
+        f"Guess a number between {low} and {high}. "
+        f"Attempts left: {attempt_limit - st.session_state.attempts}"
+    )
+    #FIX: Populate the reserved debug panel before stopping too, so it keeps
+    #showing the final state instead of rendering empty on the game-over rerun
+    with debug_box:
+        st.write("Secret:", st.session_state.secret)
+        st.write("Attempts:", st.session_state.attempts)
+        st.write("Score:", st.session_state.score)
+        st.write("Difficulty:", difficulty)
+        st.write("History:", st.session_state.history)
     st.stop()
 
 if submit:
-    st.session_state.attempts += 1
-
     ok, guess_int, err = parse_guess(raw_guess)
 
     if not ok:
+        #FIX: Improper guesses no longer burn an attempt; only count valid guesses
         st.session_state.history.append(raw_guess)
         st.error(err)
     else:
+        st.session_state.attempts += 1
         st.session_state.history.append(guess_int)
 
         #FIX: Removed even-attempt str(secret) conversion that made guesses
@@ -133,6 +154,9 @@ if submit:
         if outcome == "Win":
             st.balloons()
             st.session_state.status = "won"
+            # Stretch Goal 2: Record best winning score this session
+            if st.session_state.score > st.session_state.high_score:
+                st.session_state.high_score = st.session_state.score
             st.success(
                 f"You won! The secret was {st.session_state.secret}. "
                 f"Final score: {st.session_state.score}"
@@ -145,6 +169,13 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
+
+#FIX: Populate the reserved info box after the guess is handled, so "Attempts
+#left" reflects the latest attempt count instead of lagging one behind
+info_box.info(
+    f"Guess a number between {low} and {high}. "
+    f"Attempts left: {attempt_limit - st.session_state.attempts}"
+)
 
 #FIX: Populate the reserved debug panel after the guess is handled, so History
 #and the other fields show the current attempt instead of lagging one behind

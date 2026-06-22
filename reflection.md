@@ -19,8 +19,7 @@ Document at least 3 bugs you found. Add rows as needed.
 |---------------------------------|-----------------------|-------------------------|-----------------------------|
 |   Guess of 78 (correct is 65)   | "Too high" hint shown |  "Too low" hint shown   |            (none)           |
 |       Clicking "new game"       |    New game starts    | New game does not start |            (none)           |
-| Choosing normal/hard difficulty | Normal range is larger| Normal range is smaller | "Range: 1 to 100" (Normal); |
-|                                 |    than hard range    |     than hard range     |   "Range: 1 to 50" (Hard)   |
+| Choosing normal/hard difficulty | Normal range is larger than hard range | Normal range is smaller than hard range | "Range: 1 to 100" (Normal); "Range: 1 to 50" (Hard) |
 
 ---
 
